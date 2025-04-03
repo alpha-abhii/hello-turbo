@@ -22,14 +22,36 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           # Add the EC2 host to known hosts to prevent SSH from asking to verify the host
           ssh-keyscan -H ec2-13-201-23-32.ap-south-1.compute.amazonaws.com >> ~/.ssh/known_hosts
-          # Make sure the directory and file permissions are correct
           chmod 700 ~/.ssh
           chmod 600 ~/.ssh/known_hosts
 
       - name: SSH into server and deploy
         run: |
-          # SSH into the server and deploy the application
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@ec2-13-201-23-32.ap-south-1.compute.amazonaws.com << 'EOF'
+            # Install NVM (Node Version Manager) if it's not installed
+            if ! command -v nvm &> /dev/null
+            then
+              curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+              \. "$HOME/.nvm/nvm.sh"
+            fi
+
+            # Install Node.js using NVM (version 22 as specified)
+            nvm install 22
+            nvm use 22
+
+            # Install pm2 globally if it's not installed
+            if ! command -v pm2 &> /dev/null
+            then
+              npm install pm2 -g
+            fi
+
+            # Install pnpm if it's not installed
+            if ! command -v pnpm &> /dev/null
+            then
+              npm install -g pnpm
+            fi
+
+            # Deploy the app
             cd hello-turbo/
             git pull origin main
             pnpm install
