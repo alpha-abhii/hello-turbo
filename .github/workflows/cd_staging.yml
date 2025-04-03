@@ -15,12 +15,20 @@ jobs:
 
       - name: Set up SSH key
         run: |
+          # Create the .ssh directory if it doesn't exist
+          mkdir -p ~/.ssh
+          # Store the SSH private key in the appropriate file
           echo "${{ secrets.SSH_SECRET_KEY_STAGING }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          # Add the EC2 host to known hosts to prevent SSH from asking to verify the host
           ssh-keyscan -H ec2-13-201-23-32.ap-south-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+          # Make sure the directory and file permissions are correct
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/known_hosts
 
       - name: SSH into server and deploy
         run: |
+          # SSH into the server and deploy the application
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@ec2-13-201-23-32.ap-south-1.compute.amazonaws.com << 'EOF'
             cd hello-turbo/
             git pull origin main
