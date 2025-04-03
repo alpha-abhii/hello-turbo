@@ -1,0 +1,32 @@
+name: Deploy to Staging
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  redeploy_everything:
+    name: Deploying everything to the cluster folder
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.SSH_SECRET_KEY_STAGING }}" | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ec2-13-201-23-32.ap-south-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+
+      - name: SSH into server and deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@ec2-13-201-23-32.ap-south-1.compute.amazonaws.com << 'EOF'
+            cd hello-turbo/
+            git pull origin main
+            pnpm install
+            pnpm run build
+            pm2 reload fe-server
+            pm2 reload http-server
+            pm2 reload ws-server
+          EOF
