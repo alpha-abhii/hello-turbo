@@ -7,7 +7,7 @@ export default async function Home() {
     <div className={styles.page}>
       {user?.username ?? "No user added yet"}
       <br />
-      Hello000, your CD is working fine
+      Hello, your CD is working fine
     </div>
   );
 }
